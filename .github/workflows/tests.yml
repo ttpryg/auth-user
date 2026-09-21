@@ -33,4 +33,4 @@ jobs:
         run: composer fix:check
 
       - name: Run PHPUnit tests
-        run: vendor/bin/phpunit
+        run: composer test

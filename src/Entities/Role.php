@@ -7,27 +7,15 @@ use DateTimeInterface;
 
 class Role
 {
-    private int|string|null $id;
-
-    private string $name;
-
-    private string $label;
-
-    private ?string $description;
-
-    private ?DateTimeInterface $createdAt;
+    private readonly ?DateTimeInterface $createdAt;
 
     public function __construct(
-        string $name,
-        string $label,
-        ?string $description = null,
-        int|string|null $id = null,
+        private readonly string $name,
+        private readonly string $label,
+        private readonly ?string $description = null,
+        private int|string|null $id = null,
         ?DateTimeInterface $createdAt = null
     ) {
-        $this->id = $id;
-        $this->name = $name;
-        $this->label = $label;
-        $this->description = $description;
         $this->createdAt = $createdAt ?? new DateTimeImmutable;
     }
 

@@ -1,20 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ttpryg\AuthUser\Security;
 
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
 
 class NativePasswordHasher implements PasswordHasherInterface
 {
-    private string|int $algo;
-
-    private array $options;
-
-    public function __construct(string|int $algo = PASSWORD_BCRYPT, array $options = [])
-    {
-        $this->algo = $algo;
-        $this->options = $options;
-    }
+    public function __construct(private readonly string|int $algo = PASSWORD_BCRYPT, private readonly array $options = []) {}
 
     public function hash(string $plainPassword): string
     {

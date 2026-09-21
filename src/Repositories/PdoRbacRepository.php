@@ -10,29 +10,7 @@ use Ttpryg\AuthUser\Entities\Role;
 
 class PdoRbacRepository implements RbacRepositoryInterface
 {
-    private PDO $pdo;
-
-    private string $rolesTable;
-
-    private string $permissionsTable;
-
-    private string $userRolesTable;
-
-    private string $rolePermissionsTable;
-
-    public function __construct(
-        PDO $pdo,
-        string $rolesTable = 'roles',
-        string $permissionsTable = 'permissions',
-        string $userRolesTable = 'user_roles',
-        string $rolePermissionsTable = 'role_permissions'
-    ) {
-        $this->pdo = $pdo;
-        $this->rolesTable = $rolesTable;
-        $this->permissionsTable = $permissionsTable;
-        $this->userRolesTable = $userRolesTable;
-        $this->rolePermissionsTable = $rolePermissionsTable;
-    }
+    public function __construct(private readonly PDO $pdo, private readonly string $rolesTable = 'roles', private readonly string $permissionsTable = 'permissions', private readonly string $userRolesTable = 'user_roles', private readonly string $rolePermissionsTable = 'role_permissions') {}
 
     public function createRole(Role $role): Role
     {

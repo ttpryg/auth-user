@@ -11,7 +11,7 @@ class PdoUserRepositoryTest extends TestCase
 {
     private PDO $pdo;
 
-    private PdoUserRepository $repository;
+    private PdoUserRepository $pdoUserRepository;
 
     protected function setUp(): void
     {
@@ -33,7 +33,7 @@ class PdoUserRepositoryTest extends TestCase
             )
         ');
 
-        $this->repository = new PdoUserRepository($this->pdo);
+        $this->pdoUserRepository = new PdoUserRepository($this->pdo);
     }
 
     public function test_save_and_find_user(): void
@@ -45,21 +45,21 @@ class PdoUserRepositoryTest extends TestCase
             metadata: ['theme' => 'dark']
         );
 
-        $savedUser = $this->repository->save($user);
+        $savedUser = $this->pdoUserRepository->save($user);
 
         $this->assertNotNull($savedUser->getId());
 
-        $foundById = $this->repository->findById($savedUser->getId());
+        $foundById = $this->pdoUserRepository->findById($savedUser->getId());
         $this->assertNotNull($foundById);
         $this->assertEquals('john@example.com', $foundById->getEmail());
         $this->assertEquals('john', $foundById->getUsername());
         $this->assertEquals(['theme' => 'dark'], $foundById->getMetadata());
 
-        $foundByEmail = $this->repository->findByEmail('john@example.com');
+        $foundByEmail = $this->pdoUserRepository->findByEmail('john@example.com');
         $this->assertNotNull($foundByEmail);
         $this->assertEquals($savedUser->getId(), $foundByEmail->getId());
 
-        $foundByUsername = $this->repository->findByUsername('john');
+        $foundByUsername = $this->pdoUserRepository->findByUsername('john');
         $this->assertNotNull($foundByUsername);
         $this->assertEquals($savedUser->getId(), $foundByUsername->getId());
     }
@@ -67,17 +67,17 @@ class PdoUserRepositoryTest extends TestCase
     public function test_soft_delete_and_restore(): void
     {
         $user = new User('jane@example.com', 'hash', 'jane');
-        $savedUser = $this->repository->save($user);
+        $savedUser = $this->pdoUserRepository->save($user);
         $id = $savedUser->getId();
 
         // Soft delete
-        $this->repository->delete($id, softDelete: true);
+        $this->pdoUserRepository->delete($id, softDelete: true);
 
-        $this->assertNull($this->repository->findById($id, includeTrashed: false));
-        $this->assertNotNull($this->repository->findById($id, includeTrashed: true));
+        $this->assertNull($this->pdoUserRepository->findById($id, includeTrashed: false));
+        $this->assertNotNull($this->pdoUserRepository->findById($id, includeTrashed: true));
 
         // Restore
-        $this->repository->restore($id);
-        $this->assertNotNull($this->repository->findById($id, includeTrashed: false));
+        $this->pdoUserRepository->restore($id);
+        $this->assertNotNull($this->pdoUserRepository->findById($id, includeTrashed: false));
     }
 }
