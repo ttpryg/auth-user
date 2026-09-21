@@ -14,9 +14,9 @@ class PdoRbacRepositoryTest extends TestCase
 {
     private PDO $pdo;
 
-    private PdoRbacRepository $rbacRepository;
+    private PdoRbacRepository $pdoRbacRepository;
 
-    private PdoUserRepository $userRepository;
+    private PdoUserRepository $pdoUserRepository;
 
     private RbacManager $rbacManager;
 
@@ -68,9 +68,9 @@ class PdoRbacRepositoryTest extends TestCase
             );
         ');
 
-        $this->rbacRepository = new PdoRbacRepository($this->pdo);
-        $this->userRepository = new PdoUserRepository($this->pdo);
-        $this->rbacManager = new RbacManager($this->rbacRepository, $this->userRepository);
+        $this->pdoRbacRepository = new PdoRbacRepository($this->pdo);
+        $this->pdoUserRepository = new PdoUserRepository($this->pdo);
+        $this->rbacManager = new RbacManager($this->pdoRbacRepository, $this->pdoUserRepository);
     }
 
     // POSITIVE CASE: Full RBAC Integration Flow
@@ -78,19 +78,19 @@ class PdoRbacRepositoryTest extends TestCase
     {
         // 1. Create User
         $user = new User('editor@example.com', 'hash', 'editor_john');
-        $user = $this->userRepository->save($user);
+        $user = $this->pdoUserRepository->save($user);
         $userId = $user->getId();
 
         // 2. Create Roles
-        $roleAdmin = $this->rbacManager->createRole('admin', 'Administrator');
+        $this->rbacManager->createRole('admin', 'Administrator');
         $roleEditor = $this->rbacManager->createRole('editor', 'Editor');
 
         // 3. Create Permissions
-        $permCreatePost = $this->rbacManager->createPermission('post:create', 'Create Post');
+        $permission = $this->rbacManager->createPermission('post:create', 'Create Post');
         $permPublishPost = $this->rbacManager->createPermission('post:publish', 'Publish Post');
 
         // 4. Assign Permissions to Role
-        $this->rbacManager->assignPermissionToRole($roleEditor, $permCreatePost);
+        $this->rbacManager->assignPermissionToRole($roleEditor, $permission);
         $this->rbacManager->assignPermissionToRole($roleEditor, $permPublishPost);
 
         // 5. Assign Role to User

@@ -12,9 +12,9 @@ use Ttpryg\AuthUser\Exceptions\UserAlreadyExistsException;
 class RegistrationService
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private PasswordHasherInterface $passwordHasher,
-        private ?EventDispatcherInterface $eventDispatcher = null
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly PasswordHasherInterface $passwordHasher,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null
     ) {}
 
     public function register(
@@ -25,12 +25,12 @@ class RegistrationService
         bool $isActive = true
     ): User {
         // Validate email uniqueness
-        if ($this->userRepository->findByEmail($email) !== null) {
+        if ($this->userRepository->findByEmail($email) instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserAlreadyExistsException::forEmail($email);
         }
 
         // Validate username uniqueness if provided
-        if ($username !== null && $this->userRepository->findByUsername($username) !== null) {
+        if ($username !== null && $this->userRepository->findByUsername($username) instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserAlreadyExistsException::forUsername($username);
         }
 

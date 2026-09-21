@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ttpryg\AuthUser\Services;
 
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
@@ -11,8 +13,8 @@ use Ttpryg\AuthUser\Exceptions\UserInactiveException;
 class AuthenticationService
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private PasswordHasherInterface $passwordHasher
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly PasswordHasherInterface $passwordHasher
     ) {}
 
     public function authenticate(string $identity, string $plainPassword): User
@@ -22,7 +24,7 @@ class AuthenticationService
             ? $this->userRepository->findByEmail($identity)
             : $this->userRepository->findByUsername($identity);
 
-        if (! $user) {
+        if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
             throw new InvalidCredentialsException;
         }
 

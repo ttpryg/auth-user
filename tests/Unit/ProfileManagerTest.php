@@ -21,13 +21,13 @@ class ProfileManagerTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $user = new User('old@example.com', 'hash', 'oldname', true, [], 1);
+        $user = new User('old@example.com', 'hash', 'oldname', isActive: true, metadata: [], id: 1);
         $repo->method('findById')->with(1)->willReturn($user);
-        $repo->method('findByEmail')->with('new@example.com')->willReturn(null);
-        $repo->method('update')->willReturn(true);
+        $repo->method('findByEmail')->with('new@example.com')->willReturn(value: null);
+        $repo->method('update')->willReturn(value: true);
 
-        $service = new ProfileManager($repo, $hasher);
-        $result = $service->updateProfile(1, email: 'new@example.com');
+        $profileManager = new ProfileManager($repo, $hasher);
+        $result = $profileManager->updateProfile(1, email: 'new@example.com');
 
         $this->assertTrue($result);
         $this->assertEquals('new@example.com', $user->getEmail());
@@ -39,16 +39,16 @@ class ProfileManagerTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $user1 = new User('user1@example.com', 'hash', 'user1', true, [], 1);
-        $user2 = new User('taken@example.com', 'hash', 'user2', true, [], 2);
+        $user1 = new User('user1@example.com', 'hash', 'user1', isActive: true, metadata: [], id: 1);
+        $user2 = new User('taken@example.com', 'hash', 'user2', isActive: true, metadata: [], id: 2);
 
         $repo->method('findById')->with(1)->willReturn($user1);
         $repo->method('findByEmail')->with('taken@example.com')->willReturn($user2);
 
         $this->expectException(UserAlreadyExistsException::class);
 
-        $service = new ProfileManager($repo, $hasher);
-        $service->updateProfile(1, email: 'taken@example.com');
+        $profileManager = new ProfileManager($repo, $hasher);
+        $profileManager->updateProfile(1, email: 'taken@example.com');
     }
 
     // POSITIVE CASE: Change Password
@@ -57,15 +57,15 @@ class ProfileManagerTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $user = new User('user@example.com', 'old_hash', 'user', true, [], 1);
+        $user = new User('user@example.com', 'old_hash', 'user', isActive: true, metadata: [], id: 1);
         $repo->method('findById')->with(1)->willReturn($user);
 
-        $hasher->method('verify')->with('OldPassword123', 'old_hash')->willReturn(true);
+        $hasher->method('verify')->with('OldPassword123', 'old_hash')->willReturn(value: true);
         $hasher->method('hash')->with('NewPassword123')->willReturn('new_hash');
-        $repo->method('update')->willReturn(true);
+        $repo->method('update')->willReturn(value: true);
 
-        $service = new ProfileManager($repo, $hasher);
-        $result = $service->changePassword(1, 'OldPassword123', 'NewPassword123');
+        $profileManager = new ProfileManager($repo, $hasher);
+        $result = $profileManager->changePassword(1, 'OldPassword123', 'NewPassword123');
 
         $this->assertTrue($result);
         $this->assertEquals('new_hash', $user->getPasswordHash());
@@ -77,15 +77,15 @@ class ProfileManagerTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $user = new User('user@example.com', 'old_hash', 'user', true, [], 1);
+        $user = new User('user@example.com', 'old_hash', 'user', isActive: true, metadata: [], id: 1);
         $repo->method('findById')->with(1)->willReturn($user);
 
-        $hasher->method('verify')->with('WrongOldPassword', 'old_hash')->willReturn(false);
+        $hasher->method('verify')->with('WrongOldPassword', 'old_hash')->willReturn(value: false);
 
         $this->expectException(InvalidCredentialsException::class);
 
-        $service = new ProfileManager($repo, $hasher);
-        $service->changePassword(1, 'WrongOldPassword', 'NewPassword123');
+        $profileManager = new ProfileManager($repo, $hasher);
+        $profileManager->changePassword(1, 'WrongOldPassword', 'NewPassword123');
     }
 
     // POSITIVE CASE: Toggle Status and Dispatch Event
@@ -95,16 +95,16 @@ class ProfileManagerTest extends TestCase
         $hasher = $this->createMock(PasswordHasherInterface::class);
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
 
-        $user = new User('user@example.com', 'hash', 'user', true, [], 1);
+        $user = new User('user@example.com', 'hash', 'user', isActive: true, metadata: [], id: 1);
         $repo->method('findById')->with(1)->willReturn($user);
-        $repo->method('update')->willReturn(true);
+        $repo->method('update')->willReturn(value: true);
 
         $dispatcher->expects($this->once())
             ->method('dispatch')
             ->with($this->isInstanceOf(UserStatusChangedEvent::class));
 
-        $service = new ProfileManager($repo, $hasher, $dispatcher);
-        $result = $service->toggleStatus(1, false);
+        $profileManager = new ProfileManager($repo, $hasher, $dispatcher);
+        $result = $profileManager->toggleStatus(1, isActive: false);
 
         $this->assertTrue($result);
         $this->assertFalse($user->isActive());
@@ -116,11 +116,11 @@ class ProfileManagerTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $repo->method('findById')->with(999)->willReturn(null);
+        $repo->method('findById')->with(999)->willReturn(value: null);
 
         $this->expectException(UserNotFoundException::class);
 
-        $service = new ProfileManager($repo, $hasher);
-        $service->updateProfile(999, email: 'any@example.com');
+        $profileManager = new ProfileManager($repo, $hasher);
+        $profileManager->updateProfile(999, email: 'any@example.com');
     }
 }

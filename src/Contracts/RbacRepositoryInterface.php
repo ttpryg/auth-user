@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ttpryg\AuthUser\Contracts;
 
 use Ttpryg\AuthUser\Entities\Permission;

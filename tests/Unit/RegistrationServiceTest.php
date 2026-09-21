@@ -20,8 +20,8 @@ class RegistrationServiceTest extends TestCase
         $hasher = $this->createMock(PasswordHasherInterface::class);
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
 
-        $repo->method('findByEmail')->willReturn(null);
-        $repo->method('findByUsername')->willReturn(null);
+        $repo->method('findByEmail')->willReturn(value: null);
+        $repo->method('findByUsername')->willReturn(value: null);
 
         $hasher->expects($this->once())
             ->method('hash')
@@ -30,7 +30,7 @@ class RegistrationServiceTest extends TestCase
 
         $repo->expects($this->once())
             ->method('save')
-            ->willReturnCallback(function (User $user) {
+            ->willReturnCallback(function (User $user): \Ttpryg\AuthUser\Entities\User {
                 $user->setId(10);
 
                 return $user;
@@ -40,8 +40,8 @@ class RegistrationServiceTest extends TestCase
             ->method('dispatch')
             ->with($this->isInstanceOf(UserRegisteredEvent::class));
 
-        $service = new RegistrationService($repo, $hasher, $dispatcher);
-        $user = $service->register('newuser@example.com', 'Secret123!', 'newuser');
+        $registrationService = new RegistrationService($repo, $hasher, $dispatcher);
+        $user = $registrationService->register('newuser@example.com', 'Secret123!', 'newuser');
 
         $this->assertEquals(10, $user->getId());
         $this->assertEquals('newuser@example.com', $user->getEmail());
@@ -60,8 +60,8 @@ class RegistrationServiceTest extends TestCase
 
         $this->expectException(UserAlreadyExistsException::class);
 
-        $service = new RegistrationService($repo, $hasher);
-        $service->register('existing@example.com', 'Secret123!');
+        $registrationService = new RegistrationService($repo, $hasher);
+        $registrationService->register('existing@example.com', 'Secret123!');
     }
 
     // NEGATIVE CASE: Duplicate Username
@@ -70,13 +70,13 @@ class RegistrationServiceTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $repo->method('findByEmail')->willReturn(null);
+        $repo->method('findByEmail')->willReturn(value: null);
         $existingUser = new User('other@example.com', 'hash', 'taken_username');
         $repo->method('findByUsername')->with('taken_username')->willReturn($existingUser);
 
         $this->expectException(UserAlreadyExistsException::class);
 
-        $service = new RegistrationService($repo, $hasher);
-        $service->register('new@example.com', 'Secret123!', 'taken_username');
+        $registrationService = new RegistrationService($repo, $hasher);
+        $registrationService->register('new@example.com', 'Secret123!', 'taken_username');
     }
 }

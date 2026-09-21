@@ -9,15 +9,7 @@ use Ttpryg\AuthUser\Entities\User;
 
 class PdoUserRepository implements UserRepositoryInterface
 {
-    private PDO $pdo;
-
-    private string $table;
-
-    public function __construct(PDO $pdo, string $table = 'users')
-    {
-        $this->pdo = $pdo;
-        $this->table = $table;
-    }
+    public function __construct(private readonly PDO $pdo, private readonly string $table = 'users') {}
 
     public function findById(int|string $id, bool $includeTrashed = false): ?User
     {
@@ -140,7 +132,7 @@ class PdoUserRepository implements UserRepositoryInterface
     {
         $metadata = [];
         if (! empty($data['metadata'])) {
-            $decoded = json_decode($data['metadata'], true);
+            $decoded = json_decode($data['metadata'], associative: true);
             if (is_array($decoded)) {
                 $metadata = $decoded;
             }

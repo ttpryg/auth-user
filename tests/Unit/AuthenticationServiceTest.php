@@ -18,14 +18,14 @@ class AuthenticationServiceTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $user = new User('user@example.com', 'hashed_pass', 'username', true, [], 1);
+        $user = new User('user@example.com', 'hashed_pass', 'username', isActive: true, metadata: [], id: 1);
         $repo->method('findByEmail')->with('user@example.com')->willReturn($user);
 
-        $hasher->method('verify')->with('password123', 'hashed_pass')->willReturn(true);
-        $hasher->method('needsRehash')->willReturn(false);
+        $hasher->method('verify')->with('password123', 'hashed_pass')->willReturn(value: true);
+        $hasher->method('needsRehash')->willReturn(value: false);
 
-        $service = new AuthenticationService($repo, $hasher);
-        $result = $service->authenticate('user@example.com', 'password123');
+        $authenticationService = new AuthenticationService($repo, $hasher);
+        $result = $authenticationService->authenticate('user@example.com', 'password123');
 
         $this->assertEquals($user, $result);
     }
@@ -36,12 +36,12 @@ class AuthenticationServiceTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $repo->method('findByEmail')->with('unknown@example.com')->willReturn(null);
+        $repo->method('findByEmail')->with('unknown@example.com')->willReturn(value: null);
 
         $this->expectException(InvalidCredentialsException::class);
 
-        $service = new AuthenticationService($repo, $hasher);
-        $service->authenticate('unknown@example.com', 'password123');
+        $authenticationService = new AuthenticationService($repo, $hasher);
+        $authenticationService->authenticate('unknown@example.com', 'password123');
     }
 
     // NEGATIVE CASE: Invalid Password
@@ -50,15 +50,15 @@ class AuthenticationServiceTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $user = new User('user@example.com', 'hashed_pass', 'username', true, [], 1);
+        $user = new User('user@example.com', 'hashed_pass', 'username', isActive: true, metadata: [], id: 1);
         $repo->method('findByEmail')->with('user@example.com')->willReturn($user);
 
-        $hasher->method('verify')->with('wrong_pass', 'hashed_pass')->willReturn(false);
+        $hasher->method('verify')->with('wrong_pass', 'hashed_pass')->willReturn(value: false);
 
         $this->expectException(InvalidCredentialsException::class);
 
-        $service = new AuthenticationService($repo, $hasher);
-        $service->authenticate('user@example.com', 'wrong_pass');
+        $authenticationService = new AuthenticationService($repo, $hasher);
+        $authenticationService->authenticate('user@example.com', 'wrong_pass');
     }
 
     // NEGATIVE CASE: Deactivated Account
@@ -67,14 +67,14 @@ class AuthenticationServiceTest extends TestCase
         $repo = $this->createMock(UserRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $user = new User('user@example.com', 'hashed_pass', 'username', false, [], 1);
+        $user = new User('user@example.com', 'hashed_pass', 'username', isActive: false, metadata: [], id: 1);
         $repo->method('findByEmail')->with('user@example.com')->willReturn($user);
 
-        $hasher->method('verify')->with('password123', 'hashed_pass')->willReturn(true);
+        $hasher->method('verify')->with('password123', 'hashed_pass')->willReturn(value: true);
 
         $this->expectException(UserInactiveException::class);
 
-        $service = new AuthenticationService($repo, $hasher);
-        $service->authenticate('user@example.com', 'password123');
+        $authenticationService = new AuthenticationService($repo, $hasher);
+        $authenticationService->authenticate('user@example.com', 'password123');
     }
 }

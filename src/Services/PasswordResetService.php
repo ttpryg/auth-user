@@ -16,19 +16,19 @@ class PasswordResetService
     private const TOKEN_TYPE = 'password_reset';
 
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private TokenRepositoryInterface $tokenRepository,
-        private PasswordHasherInterface $passwordHasher,
-        private ?AuthConfig $config = null,
-        private ?EventDispatcherInterface $eventDispatcher = null
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly TokenRepositoryInterface $tokenRepository,
+        private readonly PasswordHasherInterface $passwordHasher,
+        private ?AuthConfig $authConfig = null,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null
     ) {
-        $this->config = $config ?? new AuthConfig;
+        $this->authConfig = $authConfig ?? new AuthConfig;
     }
 
     public function requestResetToken(string $email): string
     {
         $user = $this->userRepository->findByEmail($email);
-        if (! $user) {
+        if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserNotFoundException::byEmail($email);
         }
 
@@ -39,7 +39,7 @@ class PasswordResetService
         $token = $this->tokenRepository->createToken(
             $user->getId(),
             self::TOKEN_TYPE,
-            $this->config->passwordResetTokenTtl
+            $this->authConfig->passwordResetTokenTtl
         );
 
         // Dispatch Event
@@ -56,7 +56,7 @@ class PasswordResetService
         }
 
         $user = $this->userRepository->findById($tokenObj->user_id);
-        if (! $user) {
+        if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserNotFoundException::byId($tokenObj->user_id);
         }
 

@@ -23,7 +23,7 @@ class PasswordResetServiceTest extends TestCase
         $hasher = $this->createMock(PasswordHasherInterface::class);
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
 
-        $user = new User('user@example.com', 'hash', 'user', true, [], 1);
+        $user = new User('user@example.com', 'hash', 'user', isActive: true, metadata: [], id: 1);
         $userRepo->method('findByEmail')->with('user@example.com')->willReturn($user);
 
         $tokenRepo->expects($this->once())
@@ -38,8 +38,8 @@ class PasswordResetServiceTest extends TestCase
             ->method('dispatch')
             ->with($this->isInstanceOf(PasswordResetRequestedEvent::class));
 
-        $service = new PasswordResetService($userRepo, $tokenRepo, $hasher, null, $dispatcher);
-        $token = $service->requestResetToken('user@example.com');
+        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher, eventDispatcher: $dispatcher);
+        $token = $passwordResetService->requestResetToken('user@example.com');
 
         $this->assertEquals('generated_token_string', $token);
     }
@@ -51,12 +51,12 @@ class PasswordResetServiceTest extends TestCase
         $tokenRepo = $this->createMock(TokenRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $userRepo->method('findByEmail')->with('unknown@example.com')->willReturn(null);
+        $userRepo->method('findByEmail')->with('unknown@example.com')->willReturn(value: null);
 
         $this->expectException(UserNotFoundException::class);
 
-        $service = new PasswordResetService($userRepo, $tokenRepo, $hasher);
-        $service->requestResetToken('unknown@example.com');
+        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher);
+        $passwordResetService->requestResetToken('unknown@example.com');
     }
 
     // POSITIVE CASE: Reset Password
@@ -69,18 +69,18 @@ class PasswordResetServiceTest extends TestCase
         $tokenObj = (object) ['user_id' => 1, 'token' => 'valid_token'];
         $tokenRepo->method('verifyToken')->with('valid_token', 'password_reset')->willReturn($tokenObj);
 
-        $user = new User('user@example.com', 'old_hash', 'user', true, [], 1);
+        $user = new User('user@example.com', 'old_hash', 'user', isActive: true, metadata: [], id: 1);
         $userRepo->method('findById')->with(1)->willReturn($user);
 
         $hasher->method('hash')->with('BrandNewPass123')->willReturn('new_hash');
-        $userRepo->method('update')->willReturn(true);
+        $userRepo->method('update')->willReturn(value: true);
 
         $tokenRepo->expects($this->once())
             ->method('revokeToken')
             ->with('valid_token');
 
-        $service = new PasswordResetService($userRepo, $tokenRepo, $hasher);
-        $result = $service->resetPassword('valid_token', 'BrandNewPass123');
+        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher);
+        $result = $passwordResetService->resetPassword('valid_token', 'BrandNewPass123');
 
         $this->assertTrue($result);
         $this->assertEquals('new_hash', $user->getPasswordHash());
@@ -93,11 +93,11 @@ class PasswordResetServiceTest extends TestCase
         $tokenRepo = $this->createMock(TokenRepositoryInterface::class);
         $hasher = $this->createMock(PasswordHasherInterface::class);
 
-        $tokenRepo->method('verifyToken')->with('expired_token', 'password_reset')->willReturn(null);
+        $tokenRepo->method('verifyToken')->with('expired_token', 'password_reset')->willReturn(value: null);
 
         $this->expectException(TokenInvalidException::class);
 
-        $service = new PasswordResetService($userRepo, $tokenRepo, $hasher);
-        $service->resetPassword('expired_token', 'BrandNewPass123');
+        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher);
+        $passwordResetService->resetPassword('expired_token', 'BrandNewPass123');
     }
 }

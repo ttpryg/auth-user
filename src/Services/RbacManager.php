@@ -3,7 +3,6 @@
 namespace Ttpryg\AuthUser\Services;
 
 use Ttpryg\AuthUser\Contracts\RbacRepositoryInterface;
-use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
 use Ttpryg\AuthUser\Entities\Permission;
 use Ttpryg\AuthUser\Entities\Role;
 use Ttpryg\AuthUser\Entities\User;
@@ -14,14 +13,13 @@ use Ttpryg\AuthUser\Exceptions\UnauthorizedException;
 class RbacManager
 {
     public function __construct(
-        private RbacRepositoryInterface $rbacRepository,
-        private ?UserRepositoryInterface $userRepository = null
+        private readonly RbacRepositoryInterface $rbacRepository
     ) {}
 
     public function createRole(string $name, string $label, ?string $description = null): Role
     {
         $existing = $this->rbacRepository->findRoleByName($name);
-        if ($existing) {
+        if ($existing instanceof \Ttpryg\AuthUser\Entities\Role) {
             return $existing;
         }
 
@@ -31,7 +29,7 @@ class RbacManager
     public function createPermission(string $name, string $label, ?string $description = null): Permission
     {
         $existing = $this->rbacRepository->findPermissionByName($name);
-        if ($existing) {
+        if ($existing instanceof \Ttpryg\AuthUser\Entities\Permission) {
             return $existing;
         }
 
@@ -46,7 +44,7 @@ class RbacManager
                 ? $this->rbacRepository->findRoleById($role)
                 : $this->rbacRepository->findRoleByName((string) $role);
 
-            if (! $found) {
+            if (! $found instanceof \Ttpryg\AuthUser\Entities\Role) {
                 throw RoleNotFoundException::byName((string) $role);
             }
             $roleId = $found->getId();
@@ -63,7 +61,7 @@ class RbacManager
                 ? $this->rbacRepository->findRoleById($role)
                 : $this->rbacRepository->findRoleByName((string) $role);
 
-            if (! $found) {
+            if (! $found instanceof \Ttpryg\AuthUser\Entities\Role) {
                 throw RoleNotFoundException::byName((string) $role);
             }
             $roleId = $found->getId();
@@ -80,7 +78,7 @@ class RbacManager
                 ? $this->rbacRepository->findRoleById($role)
                 : $this->rbacRepository->findRoleByName((string) $role);
 
-            if (! $found) {
+            if (! $found instanceof \Ttpryg\AuthUser\Entities\Role) {
                 throw RoleNotFoundException::byName((string) $role);
             }
             $roleId = $found->getId();
@@ -92,7 +90,7 @@ class RbacManager
                 ? $this->rbacRepository->findPermissionById($permission)
                 : $this->rbacRepository->findPermissionByName((string) $permission);
 
-            if (! $found) {
+            if (! $found instanceof \Ttpryg\AuthUser\Entities\Permission) {
                 throw PermissionNotFoundException::byName((string) $permission);
             }
             $permId = $found->getId();

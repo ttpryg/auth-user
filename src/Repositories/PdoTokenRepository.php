@@ -8,15 +8,7 @@ use Ttpryg\AuthUser\Contracts\TokenRepositoryInterface;
 
 class PdoTokenRepository implements TokenRepositoryInterface
 {
-    private PDO $pdo;
-
-    private string $table;
-
-    public function __construct(PDO $pdo, string $table = 'user_tokens')
-    {
-        $this->pdo = $pdo;
-        $this->table = $table;
-    }
+    public function __construct(private readonly PDO $pdo, private readonly string $table = 'user_tokens') {}
 
     public function createToken(int|string $userId, string $type, int $ttlSeconds = 3600): string
     {

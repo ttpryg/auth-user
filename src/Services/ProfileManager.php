@@ -13,9 +13,9 @@ use Ttpryg\AuthUser\Exceptions\UserNotFoundException;
 class ProfileManager
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private PasswordHasherInterface $passwordHasher,
-        private ?EventDispatcherInterface $eventDispatcher = null
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly PasswordHasherInterface $passwordHasher,
+        private readonly ?EventDispatcherInterface $eventDispatcher = null
     ) {}
 
     public function updateProfile(
@@ -25,13 +25,13 @@ class ProfileManager
         ?array $metadata = null
     ): bool {
         $user = $this->userRepository->findById($userId);
-        if (! $user) {
+        if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserNotFoundException::byId($userId);
         }
 
         if ($email !== null && $email !== $user->getEmail()) {
             $existing = $this->userRepository->findByEmail($email);
-            if ($existing && $existing->getId() !== $userId) {
+            if ($existing instanceof \Ttpryg\AuthUser\Entities\User && $existing->getId() !== $userId) {
                 throw UserAlreadyExistsException::forEmail($email);
             }
             $user->setEmail($email);
@@ -39,7 +39,7 @@ class ProfileManager
 
         if ($username !== null && $username !== $user->getUsername()) {
             $existing = $this->userRepository->findByUsername($username);
-            if ($existing && $existing->getId() !== $userId) {
+            if ($existing instanceof \Ttpryg\AuthUser\Entities\User && $existing->getId() !== $userId) {
                 throw UserAlreadyExistsException::forUsername($username);
             }
             $user->setUsername($username);
@@ -55,7 +55,7 @@ class ProfileManager
     public function changePassword(int|string $userId, string $currentPassword, string $newPassword): bool
     {
         $user = $this->userRepository->findById($userId);
-        if (! $user) {
+        if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserNotFoundException::byId($userId);
         }
 
@@ -71,7 +71,7 @@ class ProfileManager
     public function toggleStatus(int|string $userId, bool $isActive): bool
     {
         $user = $this->userRepository->findById($userId);
-        if (! $user) {
+        if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserNotFoundException::byId($userId);
         }
 
@@ -92,8 +92,8 @@ class ProfileManager
 
     public function deleteAccount(int|string $userId, bool $softDelete = true): bool
     {
-        $user = $this->userRepository->findById($userId, true);
-        if (! $user) {
+        $user = $this->userRepository->findById($userId, includeTrashed: true);
+        if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserNotFoundException::byId($userId);
         }
 

@@ -8,52 +8,27 @@ use Ttpryg\AuthUser\Contracts\AuthenticatableInterface;
 
 class User implements AuthenticatableInterface
 {
-    private int|string|null $id;
+    // Array of Permission objects or permission names
 
-    private ?string $username;
-
-    private string $email;
-
-    private string $passwordHash;
-
-    private bool $isActive;
-
-    private array $metadata;
-
-    private array $roles; // Array of Role objects or role names
-
-    private array $permissions; // Array of Permission objects or permission names
-
-    private ?DateTimeInterface $createdAt;
+    private readonly ?DateTimeInterface $createdAt;
 
     private ?DateTimeInterface $updatedAt;
 
-    private ?DateTimeInterface $deletedAt;
-
     public function __construct(
-        string $email,
-        string $passwordHash,
-        ?string $username = null,
-        bool $isActive = true,
-        array $metadata = [],
-        int|string|null $id = null,
-        array $roles = [],
-        array $permissions = [],
+        private string $email,
+        private string $passwordHash,
+        private ?string $username = null,
+        private bool $isActive = true,
+        private array $metadata = [],
+        private int|string|null $id = null,
+        private array $roles = [],
+        private array $permissions = [],
         ?DateTimeInterface $createdAt = null,
         ?DateTimeInterface $updatedAt = null,
-        ?DateTimeInterface $deletedAt = null
+        private ?DateTimeInterface $deletedAt = null
     ) {
-        $this->id = $id;
-        $this->username = $username;
-        $this->email = $email;
-        $this->passwordHash = $passwordHash;
-        $this->isActive = $isActive;
-        $this->metadata = $metadata;
-        $this->roles = $roles;
-        $this->permissions = $permissions;
         $this->createdAt = $createdAt ?? new DateTimeImmutable;
         $this->updatedAt = $updatedAt ?? new DateTimeImmutable;
-        $this->deletedAt = $deletedAt;
     }
 
     public function getAuthIdentifier(): int|string
@@ -147,13 +122,11 @@ class User implements AuthenticatableInterface
 
     public function hasRole(string|array $roles): bool
     {
-        $userRoleNames = array_map(function ($r) {
-            return $r instanceof Role ? $r->getName() : (string) $r;
-        }, $this->roles);
+        $userRoleNames = array_map(fn ($r) => $r instanceof Role ? $r->getName() : (string) $r, $this->roles);
 
         if (is_array($roles)) {
             foreach ($roles as $role) {
-                if (in_array((string) $role, $userRoleNames, true)) {
+                if (in_array((string) $role, $userRoleNames, strict: true)) {
                     return true;
                 }
             }
@@ -161,7 +134,7 @@ class User implements AuthenticatableInterface
             return false;
         }
 
-        return in_array((string) $roles, $userRoleNames, true);
+        return in_array($roles, $userRoleNames, strict: true);
     }
 
     public function getPermissions(): array
@@ -178,11 +151,9 @@ class User implements AuthenticatableInterface
 
     public function hasPermission(string $permission): bool
     {
-        $userPermissionNames = array_map(function ($p) {
-            return $p instanceof Permission ? $p->getName() : (string) $p;
-        }, $this->permissions);
+        $userPermissionNames = array_map(fn ($p) => $p instanceof Permission ? $p->getName() : (string) $p, $this->permissions);
 
-        return in_array($permission, $userPermissionNames, true);
+        return in_array($permission, $userPermissionNames, strict: true);
     }
 
     public function getCreatedAt(): ?DateTimeInterface
