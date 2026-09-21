@@ -15,14 +15,12 @@ WORKDIR /var/www/html
 # Copy default php.ini (can be overridden in dev override)
 # COPY php.ini /usr/local/etc/php/php.ini
 
-# Set user (optional) and permissions
-RUN useradd -G www-data,root -u 1000 -m developer
-RUN chown -R developer:developer /var/www/html
+# Set user and permissions safely
+RUN useradd -o -u 1000 -g www-data -m developer || true
+RUN chown -R developer:www-data /var/www/html
 
-# Switch to non-root user
 USER developer
 
-# Expose socket only; nginx will connect via socket or use host port in dev
 EXPOSE 9000
 
 CMD ["php-fpm"]
