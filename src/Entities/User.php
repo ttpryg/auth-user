@@ -122,7 +122,7 @@ class User implements AuthenticatableInterface
 
     public function hasRole(string|array $roles): bool
     {
-        $userRoleNames = array_map(fn ($r) => $r instanceof Role ? $r->getName() : (string) $r, $this->roles);
+        $userRoleNames = array_map(fn ($r): string => $r instanceof Role ? $r->getName() : (string) $r, $this->roles);
 
         if (is_array($roles)) {
             foreach ($roles as $role) {
@@ -151,7 +151,7 @@ class User implements AuthenticatableInterface
 
     public function hasPermission(string $permission): bool
     {
-        $userPermissionNames = array_map(fn ($p) => $p instanceof Permission ? $p->getName() : (string) $p, $this->permissions);
+        $userPermissionNames = array_map(fn ($p): string => $p instanceof Permission ? $p->getName() : (string) $p, $this->permissions);
 
         return in_array($permission, $userPermissionNames, strict: true);
     }
