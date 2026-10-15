@@ -2,11 +2,13 @@
 
 namespace Ttpryg\AuthUser\Services;
 
+use InvalidArgumentException;
 use Ttpryg\AuthUser\Config\AuthConfig;
 use Ttpryg\AuthUser\Contracts\EventDispatcherInterface;
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
 use Ttpryg\AuthUser\Contracts\TokenRepositoryInterface;
 use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
+use Ttpryg\AuthUser\Events\PasswordChangedEvent;
 use Ttpryg\AuthUser\Events\PasswordResetRequestedEvent;
 use Ttpryg\AuthUser\Exceptions\TokenInvalidException;
 use Ttpryg\AuthUser\Exceptions\UserNotFoundException;
@@ -25,10 +27,14 @@ class PasswordResetService
         $this->authConfig = $authConfig ?? new AuthConfig;
     }
 
-    public function requestResetToken(string $email): string
+    public function requestResetToken(string $email): ?string
     {
         $user = $this->userRepository->findByEmail($email);
         if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
+            if ($this->authConfig->preventUserEnumeration) {
+                return null;
+            }
+
             throw UserNotFoundException::byEmail($email);
         }
 
@@ -50,6 +56,10 @@ class PasswordResetService
 
     public function resetPassword(string $token, string $newPassword): bool
     {
+        if (strlen($newPassword) < $this->authConfig->minPasswordLength) {
+            throw new InvalidArgumentException("Password must be at least {$this->authConfig->minPasswordLength} characters long.");
+        }
+
         $tokenObj = $this->tokenRepository->verifyToken($token, self::TOKEN_TYPE);
         if (! $tokenObj) {
             throw new TokenInvalidException;
@@ -65,8 +75,9 @@ class PasswordResetService
         $success = $this->userRepository->update($user);
 
         if ($success) {
-            // Revoke reset tokens
+            // Revoke reset token
             $this->tokenRepository->revokeToken($token);
+            $this->eventDispatcher?->dispatch(new PasswordChangedEvent($user));
         }
 
         return $success;

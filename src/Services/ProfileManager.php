@@ -2,9 +2,13 @@
 
 namespace Ttpryg\AuthUser\Services;
 
+use InvalidArgumentException;
+use Ttpryg\AuthUser\Config\AuthConfig;
 use Ttpryg\AuthUser\Contracts\EventDispatcherInterface;
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
+use Ttpryg\AuthUser\Contracts\TokenRepositoryInterface;
 use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
+use Ttpryg\AuthUser\Events\PasswordChangedEvent;
 use Ttpryg\AuthUser\Events\UserStatusChangedEvent;
 use Ttpryg\AuthUser\Exceptions\InvalidCredentialsException;
 use Ttpryg\AuthUser\Exceptions\UserAlreadyExistsException;
@@ -12,11 +16,17 @@ use Ttpryg\AuthUser\Exceptions\UserNotFoundException;
 
 class ProfileManager
 {
+    private readonly AuthConfig $authConfig;
+
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
         private readonly PasswordHasherInterface $passwordHasher,
-        private readonly ?EventDispatcherInterface $eventDispatcher = null
-    ) {}
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
+        private readonly ?TokenRepositoryInterface $tokenRepository = null,
+        ?AuthConfig $authConfig = null
+    ) {
+        $this->authConfig = $authConfig ?? new AuthConfig;
+    }
 
     public function updateProfile(
         int|string $userId,
@@ -30,16 +40,20 @@ class ProfileManager
         }
 
         if ($email !== null && $email !== $user->getEmail()) {
-            $existing = $this->userRepository->findByEmail($email);
-            if ($existing instanceof \Ttpryg\AuthUser\Entities\User && $existing->getId() !== $userId) {
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new InvalidArgumentException("Invalid email format: {$email}");
+            }
+
+            $existing = $this->userRepository->findByEmail($email, includeTrashed: true);
+            if ($existing instanceof \Ttpryg\AuthUser\Entities\User && (string) $existing->getId() !== (string) $userId) {
                 throw UserAlreadyExistsException::forEmail($email);
             }
             $user->setEmail($email);
         }
 
         if ($username !== null && $username !== $user->getUsername()) {
-            $existing = $this->userRepository->findByUsername($username);
-            if ($existing instanceof \Ttpryg\AuthUser\Entities\User && $existing->getId() !== $userId) {
+            $existing = $this->userRepository->findByUsername($username, includeTrashed: true);
+            if ($existing instanceof \Ttpryg\AuthUser\Entities\User && (string) $existing->getId() !== (string) $userId) {
                 throw UserAlreadyExistsException::forUsername($username);
             }
             $user->setUsername($username);
@@ -54,6 +68,10 @@ class ProfileManager
 
     public function changePassword(int|string $userId, string $currentPassword, string $newPassword): bool
     {
+        if (strlen($newPassword) < $this->authConfig->minPasswordLength) {
+            throw new InvalidArgumentException("Password must be at least {$this->authConfig->minPasswordLength} characters long.");
+        }
+
         $user = $this->userRepository->findById($userId);
         if (! $user instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserNotFoundException::byId($userId);
@@ -64,8 +82,15 @@ class ProfileManager
         }
 
         $user->setPasswordHash($this->passwordHasher->hash($newPassword));
+        $success = $this->userRepository->update($user);
 
-        return $this->userRepository->update($user);
+        if ($success) {
+            // Invalidate existing sessions/tokens upon password change
+            $this->tokenRepository?->revokeAllUserTokens($userId);
+            $this->eventDispatcher?->dispatch(new PasswordChangedEvent($user));
+        }
+
+        return $success;
     }
 
     public function toggleStatus(int|string $userId, bool $isActive): bool

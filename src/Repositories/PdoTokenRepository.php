@@ -3,6 +3,7 @@
 namespace Ttpryg\AuthUser\Repositories;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use PDO;
 use Ttpryg\AuthUser\Contracts\TokenRepositoryInterface;
 
@@ -13,7 +14,8 @@ class PdoTokenRepository implements TokenRepositoryInterface
     public function createToken(int|string $userId, string $type, int $ttlSeconds = 3600): string
     {
         $token = bin2hex(random_bytes(32));
-        $expiresAt = (new DateTimeImmutable)->modify("+{$ttlSeconds} seconds");
+        $hashedToken = hash('sha256', $token);
+        $expiresAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->modify("+{$ttlSeconds} seconds");
 
         $sql = "INSERT INTO {$this->table} (user_id, type, token, expires_at) 
                 VALUES (:user_id, :type, :token, :expires_at)";
@@ -22,7 +24,7 @@ class PdoTokenRepository implements TokenRepositoryInterface
         $stmt->execute([
             'user_id' => $userId,
             'type' => $type,
-            'token' => $token,
+            'token' => $hashedToken,
             'expires_at' => $expiresAt->format('Y-m-d H:i:s'),
         ]);
 
@@ -31,13 +33,15 @@ class PdoTokenRepository implements TokenRepositoryInterface
 
     public function verifyToken(string $token, string $type): ?object
     {
-        $now = (new \DateTimeImmutable)->format('Y-m-d H:i:s');
+        $hashedToken = hash('sha256', $token);
+        $now = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s');
         $sql = "SELECT * FROM {$this->table} 
-                WHERE token = :token AND type = :type AND expires_at > :now";
+                WHERE (token = :hashed_token OR token = :plain_token) AND type = :type AND expires_at > :now";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'token' => $token,
+            'hashed_token' => $hashedToken,
+            'plain_token' => $token,
             'type' => $type,
             'now' => $now,
         ]);
@@ -49,10 +53,14 @@ class PdoTokenRepository implements TokenRepositoryInterface
 
     public function revokeToken(string $token): bool
     {
-        $sql = "DELETE FROM {$this->table} WHERE token = :token";
+        $hashedToken = hash('sha256', $token);
+        $sql = "DELETE FROM {$this->table} WHERE token = :hashed_token OR token = :plain_token";
         $stmt = $this->pdo->prepare($sql);
 
-        return $stmt->execute(['token' => $token]);
+        return $stmt->execute([
+            'hashed_token' => $hashedToken,
+            'plain_token' => $token,
+        ]);
     }
 
     public function revokeAllUserTokens(int|string $userId, ?string $type = null): bool

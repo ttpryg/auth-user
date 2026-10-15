@@ -153,7 +153,20 @@ class User implements AuthenticatableInterface
     {
         $userPermissionNames = array_map(fn ($p): string => $p instanceof Permission ? $p->getName() : (string) $p, $this->permissions);
 
-        return in_array($permission, $userPermissionNames, strict: true);
+        if (in_array($permission, $userPermissionNames, strict: true) || in_array('*', $userPermissionNames, strict: true)) {
+            return true;
+        }
+
+        foreach ($userPermissionNames as $userPermissionName) {
+            if (str_ends_with($userPermissionName, ':*')) {
+                $prefix = substr($userPermissionName, 0, -1);
+                if (str_starts_with($permission, $prefix)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function getCreatedAt(): ?DateTimeInterface

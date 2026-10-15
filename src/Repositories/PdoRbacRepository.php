@@ -120,11 +120,16 @@ class PdoRbacRepository implements RbacRepositoryInterface
 
     public function assignRoleToUser(int|string $userId, int|string $roleId): bool
     {
-        $ignoreKeyword = ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite')
-            ? 'INSERT OR IGNORE'
-            : 'INSERT IGNORE';
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-        $sql = "{$ignoreKeyword} INTO {$this->userRolesTable} (user_id, role_id) VALUES (:user_id, :role_id)";
+        if ($driver === 'pgsql') {
+            $sql = "INSERT INTO {$this->userRolesTable} (user_id, role_id) VALUES (:user_id, :role_id) ON CONFLICT DO NOTHING";
+        } elseif ($driver === 'sqlite') {
+            $sql = "INSERT OR IGNORE INTO {$this->userRolesTable} (user_id, role_id) VALUES (:user_id, :role_id)";
+        } else {
+            $sql = "INSERT IGNORE INTO {$this->userRolesTable} (user_id, role_id) VALUES (:user_id, :role_id)";
+        }
+
         $stmt = $this->pdo->prepare($sql);
 
         return $stmt->execute(['user_id' => $userId, 'role_id' => $roleId]);
@@ -157,11 +162,16 @@ class PdoRbacRepository implements RbacRepositoryInterface
 
     public function assignPermissionToRole(int|string $roleId, int|string $permissionId): bool
     {
-        $ignoreKeyword = ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite')
-            ? 'INSERT OR IGNORE'
-            : 'INSERT IGNORE';
+        $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-        $sql = "{$ignoreKeyword} INTO {$this->rolePermissionsTable} (role_id, permission_id) VALUES (:role_id, :permission_id)";
+        if ($driver === 'pgsql') {
+            $sql = "INSERT INTO {$this->rolePermissionsTable} (role_id, permission_id) VALUES (:role_id, :permission_id) ON CONFLICT DO NOTHING";
+        } elseif ($driver === 'sqlite') {
+            $sql = "INSERT OR IGNORE INTO {$this->rolePermissionsTable} (role_id, permission_id) VALUES (:role_id, :permission_id)";
+        } else {
+            $sql = "INSERT IGNORE INTO {$this->rolePermissionsTable} (role_id, permission_id) VALUES (:role_id, :permission_id)";
+        }
+
         $stmt = $this->pdo->prepare($sql);
 
         return $stmt->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);

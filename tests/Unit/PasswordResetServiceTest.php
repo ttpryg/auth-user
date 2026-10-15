@@ -100,4 +100,32 @@ class PasswordResetServiceTest extends TestCase
         $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher);
         $passwordResetService->resetPassword('expired_token', 'BrandNewPass123');
     }
+
+    public function test_request_reset_token_returns_null_when_user_enumeration_prevented(): void
+    {
+        $userRepo = $this->createMock(UserRepositoryInterface::class);
+        $tokenRepo = $this->createMock(TokenRepositoryInterface::class);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+
+        $userRepo->method('findByEmail')->with('unknown@example.com')->willReturn(value: null);
+
+        $authConfig = new \Ttpryg\AuthUser\Config\AuthConfig(preventUserEnumeration: true);
+        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher, authConfig: $authConfig);
+
+        $result = $passwordResetService->requestResetToken('unknown@example.com');
+        $this->assertNull($result);
+    }
+
+    public function test_reset_password_fails_on_short_password(): void
+    {
+        $userRepo = $this->createMock(UserRepositoryInterface::class);
+        $tokenRepo = $this->createMock(TokenRepositoryInterface::class);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Password must be at least 8 characters long');
+
+        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher);
+        $passwordResetService->resetPassword('token', 'short');
+    }
 }

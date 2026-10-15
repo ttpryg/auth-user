@@ -123,4 +123,43 @@ class ProfileManagerTest extends TestCase
         $profileManager = new ProfileManager($repo, $hasher);
         $profileManager->updateProfile(999, email: 'any@example.com');
     }
+
+    public function test_change_password_fails_on_short_password(): void
+    {
+        $repo = $this->createMock(UserRepositoryInterface::class);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Password must be at least 8 characters long');
+
+        $profileManager = new ProfileManager($repo, $hasher);
+        $profileManager->changePassword(1, 'old_pass', 'short');
+    }
+
+    public function test_change_password_revokes_tokens_and_dispatches_event(): void
+    {
+        $repo = $this->createMock(UserRepositoryInterface::class);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+        $tokenRepo = $this->createMock(\Ttpryg\AuthUser\Contracts\TokenRepositoryInterface::class);
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+
+        $user = new User('user@example.com', 'old_hash', 'user', isActive: true, metadata: [], id: 1);
+        $repo->method('findById')->with(1)->willReturn($user);
+        $hasher->method('verify')->with('OldPassword123', 'old_hash')->willReturn(value: true);
+        $hasher->method('hash')->with('NewPassword123')->willReturn('new_hash');
+        $repo->method('update')->willReturn(value: true);
+
+        $tokenRepo->expects($this->once())
+            ->method('revokeAllUserTokens')
+            ->with(1);
+
+        $dispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->isInstanceOf(\Ttpryg\AuthUser\Events\PasswordChangedEvent::class));
+
+        $profileManager = new ProfileManager($repo, $hasher, $dispatcher, $tokenRepo);
+        $result = $profileManager->changePassword(1, 'OldPassword123', 'NewPassword123');
+
+        $this->assertTrue($result);
+    }
 }

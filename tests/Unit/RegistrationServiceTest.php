@@ -79,4 +79,46 @@ class RegistrationServiceTest extends TestCase
         $registrationService = new RegistrationService($repo, $hasher);
         $registrationService->register('new@example.com', 'Secret123!', 'taken_username');
     }
+
+    public function test_registration_throws_exception_on_invalid_email(): void
+    {
+        $repo = $this->createMock(UserRepositoryInterface::class);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid email format');
+
+        $registrationService = new RegistrationService($repo, $hasher);
+        $registrationService->register('invalid-email-format', 'Secret123!');
+    }
+
+    public function test_registration_throws_exception_on_short_password(): void
+    {
+        $repo = $this->createMock(UserRepositoryInterface::class);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Password must be at least 8 characters long');
+
+        $registrationService = new RegistrationService($repo, $hasher);
+        $registrationService->register('valid@example.com', 'short');
+    }
+
+    public function test_registration_handles_race_condition_duplicate_entry(): void
+    {
+        $repo = $this->createMock(UserRepositoryInterface::class);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+
+        $repo->method('findByEmail')->willReturn(value: null);
+        $hasher->method('hash')->willReturn('hash');
+
+        // Simulate concurrent insert throwing PDOException 23000
+        $pdoException = new \PDOException('SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry', 23000);
+        $repo->method('save')->willThrowException($pdoException);
+
+        $this->expectException(UserAlreadyExistsException::class);
+
+        $registrationService = new RegistrationService($repo, $hasher);
+        $registrationService->register('concurrent@example.com', 'Secret123!');
+    }
 }

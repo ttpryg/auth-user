@@ -2,6 +2,9 @@
 
 namespace Ttpryg\AuthUser\Services;
 
+use InvalidArgumentException;
+use PDOException;
+use Ttpryg\AuthUser\Config\AuthConfig;
 use Ttpryg\AuthUser\Contracts\EventDispatcherInterface;
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
 use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
@@ -11,11 +14,16 @@ use Ttpryg\AuthUser\Exceptions\UserAlreadyExistsException;
 
 class RegistrationService
 {
+    private readonly AuthConfig $authConfig;
+
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
         private readonly PasswordHasherInterface $passwordHasher,
-        private readonly ?EventDispatcherInterface $eventDispatcher = null
-    ) {}
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
+        ?AuthConfig $authConfig = null
+    ) {
+        $this->authConfig = $authConfig ?? new AuthConfig;
+    }
 
     public function register(
         string $email,
@@ -24,14 +32,26 @@ class RegistrationService
         array $metadata = [],
         bool $isActive = true
     ): User {
-        // Validate email uniqueness
-        if ($this->userRepository->findByEmail($email) instanceof \Ttpryg\AuthUser\Entities\User) {
+        // Validate email format
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException("Invalid email format: {$email}");
+        }
+
+        // Validate password minimum length
+        if (strlen($plainPassword) < $this->authConfig->minPasswordLength) {
+            throw new InvalidArgumentException("Password must be at least {$this->authConfig->minPasswordLength} characters long.");
+        }
+
+        // Validate email uniqueness (including trashed accounts to avoid DB constraint crash)
+        if ($this->userRepository->findByEmail($email, includeTrashed: true) instanceof \Ttpryg\AuthUser\Entities\User) {
             throw UserAlreadyExistsException::forEmail($email);
         }
 
-        // Validate username uniqueness if provided
-        if ($username !== null && $this->userRepository->findByUsername($username) instanceof \Ttpryg\AuthUser\Entities\User) {
-            throw UserAlreadyExistsException::forUsername($username);
+        // Validate username uniqueness if provided and required
+        if ($username !== null && $this->authConfig->requireUniqueUsername) {
+            if ($this->userRepository->findByUsername($username, includeTrashed: true) instanceof \Ttpryg\AuthUser\Entities\User) {
+                throw UserAlreadyExistsException::forUsername($username);
+            }
         }
 
         // Hash password
@@ -46,8 +66,15 @@ class RegistrationService
             metadata: $metadata
         );
 
-        // Save to database
-        $savedUser = $this->userRepository->save($user);
+        // Save to database with race condition handling
+        try {
+            $savedUser = $this->userRepository->save($user);
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'UNIQUE constraint')) {
+                throw UserAlreadyExistsException::forEmail($email);
+            }
+            throw $e;
+        }
 
         // Dispatch Event
         $this->eventDispatcher?->dispatch(new UserRegisteredEvent($savedUser));

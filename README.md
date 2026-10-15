@@ -5,13 +5,16 @@
 ## 🌟 Key Features
 
 - **Framework Agnostic**: Works out of the box with any PHP application or framework (Vanilla PHP, Slim 4, Laravel, Symfony, CodeIgniter).
-- **Full RBAC (Role-Based Access Control)**: Manage roles (`admin`, `editor`, `customer`) and permissions (`user:create`, `post:publish`).
-- **PDO-based & ORM Agnostic**: Includes standard PDO repositories (`PdoUserRepository`, `PdoTokenRepository`, `PdoRbacRepository`).
-- **Improved Database Schema**:
-  - `users`, `user_tokens`, `roles`, `permissions`, `user_roles`, `role_permissions` tables.
-  - Soft deletes, composite indexing, and `metadata` JSON support.
-- **Domain Events**: Dispatches domain events (`UserRegisteredEvent`, `UserStatusChangedEvent`, `PasswordResetRequestedEvent`).
-- **Security First**: Native password hashing using `password_hash()` with automatic rehash detection.
+- **Production-Grade Security**:
+  - **Hashed Token Storage**: Tokens are stored as SHA-256 hashes in the database to prevent exposure during data leaks.
+  - **Timing Attack Mitigation**: Constant-time verification on login attempts even for non-existent users.
+  - **Account Enumeration Protection**: Configurable option to prevent email discovery on password reset.
+  - **Input & Password Validation**: Email format validation and customizable minimum password length.
+  - **Session Invalidation**: Automatically revokes tokens upon password change or reset.
+- **Full RBAC (Role-Based Access Control)**: Manage roles (`admin`, `editor`, `customer`) and permissions (`user:create`, `post:publish`) with support for wildcard (`user:*`) and superadmin (`*`) permissions.
+- **Cross-Database Compatible**: Supports MySQL / MariaDB, PostgreSQL, and SQLite out of the box.
+- **Email Verification & Password Reset**: Dedicated services for verification tokens and password reset lifecycle.
+- **Domain Events**: Dispatches domain events (`UserRegisteredEvent`, `UserLoggedInEvent`, `UserStatusChangedEvent`, `PasswordResetRequestedEvent`, `PasswordChangedEvent`, `UserEmailVerifiedEvent`).
 
 ---
 

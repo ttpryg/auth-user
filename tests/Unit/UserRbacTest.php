@@ -56,4 +56,18 @@ class UserRbacTest extends TestCase
         $this->expectException(UnauthorizedException::class);
         $rbacManager->authorizePermission($user, 'post:delete');
     }
+
+    public function test_wildcard_and_superadmin_permissions(): void
+    {
+        // Wildcard prefix: user:*
+        $userWildcard = new User('wildcard@example.com', 'hash', permissions: [new Permission('user:*', 'All User Permissions')]);
+        $this->assertTrue($userWildcard->hasPermission('user:create'));
+        $this->assertTrue($userWildcard->hasPermission('user:delete'));
+        $this->assertFalse($userWildcard->hasPermission('post:delete'));
+
+        // Superadmin: *
+        $superadmin = new User('super@example.com', 'hash', permissions: [new Permission('*', 'All Permissions')]);
+        $this->assertTrue($superadmin->hasPermission('user:create'));
+        $this->assertTrue($superadmin->hasPermission('anything:do_whatever'));
+    }
 }
