@@ -4,8 +4,11 @@
 # Exclude unnecessary files from export-zip / composer archives
 .docker export-ignore
 .github export-ignore
+
 tests export-ignore
 phpunit.xml export-ignore
+
+.editorconfig export-ignore
 .gitignore export-ignore
 .gitattributes export-ignore
 docker-compose.yml export-ignore
