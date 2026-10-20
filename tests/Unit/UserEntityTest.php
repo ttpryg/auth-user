@@ -6,7 +6,7 @@ namespace Ttpryg\AuthUser\Tests\Unit;
 
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
-use Ttpryg\AuthUser\Entities\User;
+use Ttpryg\AuthUser\Domain\Entity\User;
 
 class UserEntityTest extends TestCase
 {

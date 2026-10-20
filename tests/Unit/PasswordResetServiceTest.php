@@ -3,15 +3,15 @@
 namespace Ttpryg\AuthUser\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Ttpryg\AuthUser\Application\Service\PasswordResetService;
 use Ttpryg\AuthUser\Contracts\EventDispatcherInterface;
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
 use Ttpryg\AuthUser\Contracts\TokenRepositoryInterface;
 use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
-use Ttpryg\AuthUser\Entities\User;
-use Ttpryg\AuthUser\Events\PasswordResetRequestedEvent;
-use Ttpryg\AuthUser\Exceptions\TokenInvalidException;
-use Ttpryg\AuthUser\Exceptions\UserNotFoundException;
-use Ttpryg\AuthUser\Services\PasswordResetService;
+use Ttpryg\AuthUser\Domain\Entity\User;
+use Ttpryg\AuthUser\Domain\Event\PasswordResetRequestedEvent;
+use Ttpryg\AuthUser\Domain\Exception\TokenInvalidException;
+use Ttpryg\AuthUser\Domain\Exception\UserNotFoundException;
 
 class PasswordResetServiceTest extends TestCase
 {
@@ -53,7 +53,7 @@ class PasswordResetServiceTest extends TestCase
 
         $userRepo->method('findByEmail')->with('unknown@example.com')->willReturn(value: null);
 
-        $authConfig = new \\Ttpryg\\AuthUser\\Config\\AuthConfig(preventUserEnumeration: false);
+        $authConfig = new \Ttpryg\AuthUser\Application\Config\AuthConfig(preventUserEnumeration: false);
         $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher, authConfig: $authConfig);
 
         $this->expectException(UserNotFoundException::class);
@@ -126,7 +126,7 @@ class PasswordResetServiceTest extends TestCase
 
         $userRepo->method('findByEmail')->with('unknown@example.com')->willReturn(value: null);
 
-        $authConfig = new \Ttpryg\AuthUser\Config\AuthConfig(preventUserEnumeration: true);
+        $authConfig = new \Ttpryg\AuthUser\Application\Config\AuthConfig(preventUserEnumeration: true);
         $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher, authConfig: $authConfig);
 
         $result = $passwordResetService->requestResetToken('unknown@example.com');

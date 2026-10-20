@@ -28,14 +28,14 @@ Run the SQL migrations from `database/migrations/` via `ttpryg/database-migrator
 
 ```php
 use PDO;
-use Ttpryg\AuthUser\Repositories\PdoUserRepository;
-use Ttpryg\AuthUser\Repositories\PdoRbacRepository;
-use Ttpryg\AuthUser\Services\RbacManager;
+use Ttpryg\AuthUser\Infrastructure\Persistence\Pdo\PdoUserRepository;
+use Ttpryg\AuthUser\Infrastructure\Persistence\Pdo\PdoRbacRepository;
+use Ttpryg\AuthUser\Application\Service\RbacManager;
 
 $pdo = new PDO("mysql:host=localhost;dbname=my_db", "root", "secret");
 $userRepo = new PdoUserRepository($pdo);
 $rbacRepo = new PdoRbacRepository($pdo);
-$rbacManager = new RbacManager($rbacRepo, $userRepo);
+$rbacManager = new RbacManager($rbacRepo);
 
 // 1. Create Roles & Permissions
 $adminRole = $rbacManager->createRole('admin', 'Administrator');

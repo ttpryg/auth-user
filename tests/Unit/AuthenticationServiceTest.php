@@ -3,12 +3,12 @@
 namespace Ttpryg\AuthUser\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Ttpryg\AuthUser\Application\Service\AuthenticationService;
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
 use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
-use Ttpryg\AuthUser\Entities\User;
-use Ttpryg\AuthUser\Exceptions\InvalidCredentialsException;
-use Ttpryg\AuthUser\Exceptions\UserInactiveException;
-use Ttpryg\AuthUser\Services\AuthenticationService;
+use Ttpryg\AuthUser\Domain\Entity\User;
+use Ttpryg\AuthUser\Domain\Exception\InvalidCredentialsException;
+use Ttpryg\AuthUser\Domain\Exception\UserInactiveException;
 
 class AuthenticationServiceTest extends TestCase
 {
@@ -111,9 +111,9 @@ class AuthenticationServiceTest extends TestCase
 
         $dispatcher->expects($this->once())
             ->method('dispatch')
-            ->with($this->isInstanceOf(\Ttpryg\AuthUser\Events\UserLoggedInEvent::class));
+            ->with($this->isInstanceOf(\Ttpryg\AuthUser\Domain\Event\UserLoggedInEvent::class));
 
-        $authConfig = new \Ttpryg\AuthUser\Config\AuthConfig(allowInactiveLogin: true);
+        $authConfig = new \Ttpryg\AuthUser\Application\Config\AuthConfig(allowInactiveLogin: true);
         $authenticationService = new AuthenticationService($repo, $hasher, authConfig: $authConfig, eventDispatcher: $dispatcher);
         $result = $authenticationService->authenticate('user@example.com', 'password123');
 

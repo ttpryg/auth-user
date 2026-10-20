@@ -4,7 +4,7 @@ namespace Ttpryg\AuthUser\Tests\Integration;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
-use Ttpryg\AuthUser\Repositories\PdoTokenRepository;
+use Ttpryg\AuthUser\Infrastructure\Persistence\Pdo\PdoTokenRepository;
 
 class PdoTokenRepositoryTest extends TestCase
 {

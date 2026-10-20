@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Ttpryg\AuthUser\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Ttpryg\AuthUser\Security\NativePasswordHasher;
+use Ttpryg\AuthUser\Infrastructure\Security\NativePasswordHasher;
 
 class NativePasswordHasherTest extends TestCase
 {
