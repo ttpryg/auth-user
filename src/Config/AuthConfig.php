@@ -12,6 +12,6 @@ class AuthConfig
         public readonly bool $allowInactiveLogin = false,
         public readonly bool $requireUniqueUsername = true,
         public readonly int $minPasswordLength = 8,
-        public readonly bool $preventUserEnumeration = false
+        public readonly bool $preventUserEnumeration = true
     ) {}
 }
