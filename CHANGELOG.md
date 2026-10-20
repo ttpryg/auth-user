@@ -5,6 +5,21 @@ All notable changes to `ttpryg/auth-user` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `database/migrations/` with versioned migration files (`up()`/`down()`) managed by `ttpryg/database-migrator`.
+- `ttpryg/database-migrator` Composer dependency (`^1.0`).
+
+### Changed
+
+- Replaced `src/Database/DatabaseMigrator.php` with `ttpryg/database-migrator` for versioned, rollback-safe migrations.
+
+### Removed
+
+- `database/schema.sql` snapshot (migrations are now the source of truth).
+
 ## [1.3.0] - 2026-10-18
 
 ### Added
