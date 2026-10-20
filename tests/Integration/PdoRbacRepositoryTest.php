@@ -4,11 +4,11 @@ namespace Ttpryg\AuthUser\Tests\Integration;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
-use Ttpryg\AuthUser\Entities\Role;
-use Ttpryg\AuthUser\Entities\User;
-use Ttpryg\AuthUser\Repositories\PdoRbacRepository;
-use Ttpryg\AuthUser\Repositories\PdoUserRepository;
-use Ttpryg\AuthUser\Services\RbacManager;
+use Ttpryg\AuthUser\Application\Service\RbacManager;
+use Ttpryg\AuthUser\Domain\Entity\Role;
+use Ttpryg\AuthUser\Domain\Entity\User;
+use Ttpryg\AuthUser\Infrastructure\Persistence\Pdo\PdoRbacRepository;
+use Ttpryg\AuthUser\Infrastructure\Persistence\Pdo\PdoUserRepository;
 
 class PdoRbacRepositoryTest extends TestCase
 {

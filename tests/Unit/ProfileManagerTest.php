@@ -3,15 +3,15 @@
 namespace Ttpryg\AuthUser\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Ttpryg\AuthUser\Application\Service\ProfileManager;
 use Ttpryg\AuthUser\Contracts\EventDispatcherInterface;
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
 use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
-use Ttpryg\AuthUser\Entities\User;
-use Ttpryg\AuthUser\Events\UserStatusChangedEvent;
-use Ttpryg\AuthUser\Exceptions\InvalidCredentialsException;
-use Ttpryg\AuthUser\Exceptions\UserAlreadyExistsException;
-use Ttpryg\AuthUser\Exceptions\UserNotFoundException;
-use Ttpryg\AuthUser\Services\ProfileManager;
+use Ttpryg\AuthUser\Domain\Entity\User;
+use Ttpryg\AuthUser\Domain\Event\UserStatusChangedEvent;
+use Ttpryg\AuthUser\Domain\Exception\InvalidCredentialsException;
+use Ttpryg\AuthUser\Domain\Exception\UserAlreadyExistsException;
+use Ttpryg\AuthUser\Domain\Exception\UserNotFoundException;
 
 class ProfileManagerTest extends TestCase
 {
@@ -155,7 +155,7 @@ class ProfileManagerTest extends TestCase
 
         $dispatcher->expects($this->once())
             ->method('dispatch')
-            ->with($this->isInstanceOf(\Ttpryg\AuthUser\Events\PasswordChangedEvent::class));
+            ->with($this->isInstanceOf(\Ttpryg\AuthUser\Domain\Event\PasswordChangedEvent::class));
 
         $profileManager = new ProfileManager($repo, $hasher, $dispatcher, $tokenRepo);
         $result = $profileManager->changePassword(1, 'OldPassword123', 'NewPassword123');

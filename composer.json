@@ -21,7 +21,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Ttpryg\\AuthUser\\": "src/"
+            "Ttpryg\\AuthUser\\": "src/",
+            "Ttpryg\\AuthUser\\Infrastructure\\": "infrastructure/"
         }
     },
     "autoload-dev": {

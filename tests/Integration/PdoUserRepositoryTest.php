@@ -4,8 +4,8 @@ namespace Ttpryg\AuthUser\Tests\Integration;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
-use Ttpryg\AuthUser\Entities\User;
-use Ttpryg\AuthUser\Repositories\PdoUserRepository;
+use Ttpryg\AuthUser\Domain\Entity\User;
+use Ttpryg\AuthUser\Infrastructure\Persistence\Pdo\PdoUserRepository;
 
 class PdoUserRepositoryTest extends TestCase
 {

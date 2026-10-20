@@ -3,11 +3,11 @@
 namespace Ttpryg\AuthUser\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Ttpryg\AuthUser\Entities\Permission;
-use Ttpryg\AuthUser\Entities\Role;
-use Ttpryg\AuthUser\Entities\User;
-use Ttpryg\AuthUser\Exceptions\UnauthorizedException;
-use Ttpryg\AuthUser\Services\RbacManager;
+use Ttpryg\AuthUser\Application\Service\RbacManager;
+use Ttpryg\AuthUser\Domain\Entity\Permission;
+use Ttpryg\AuthUser\Domain\Entity\Role;
+use Ttpryg\AuthUser\Domain\Entity\User;
+use Ttpryg\AuthUser\Domain\Exception\UnauthorizedException;
 
 class UserRbacTest extends TestCase
 {

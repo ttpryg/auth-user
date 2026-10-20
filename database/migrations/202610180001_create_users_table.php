@@ -2,8 +2,14 @@
 
 declare(strict_types=1);
 
-return [
-    'up' => <<<'SQL'
+use PDO;
+use Ttpryg\DatabaseMigrator\Migration;
+
+return new class extends Migration
+{
+    public function up(PDO $pdo): void
+    {
+        $pdo->exec(<<<'SQL'
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NULL UNIQUE,
@@ -17,8 +23,12 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_user_login (email, is_active),
     INDEX idx_username_login (username, is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-SQL,
-    'down' => <<<'SQL'
-DROP TABLE IF EXISTS users;
-SQL,
-];
+SQL
+        );
+    }
+
+    public function down(PDO $pdo): void
+    {
+        $pdo->exec('DROP TABLE IF EXISTS users;');
+    }
+};

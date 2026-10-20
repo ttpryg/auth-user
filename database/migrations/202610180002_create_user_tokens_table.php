@@ -2,8 +2,14 @@
 
 declare(strict_types=1);
 
-return [
-    'up' => <<<'SQL'
+use PDO;
+use Ttpryg\DatabaseMigrator\Migration;
+
+return new class extends Migration
+{
+    public function up(PDO $pdo): void
+    {
+        $pdo->exec(<<<'SQL'
 CREATE TABLE IF NOT EXISTS user_tokens (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,
@@ -14,8 +20,12 @@ CREATE TABLE IF NOT EXISTS user_tokens (
     INDEX idx_user_token_type (user_id, type),
     CONSTRAINT fk_user_tokens_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-SQL,
-    'down' => <<<'SQL'
-DROP TABLE IF EXISTS user_tokens;
-SQL,
-];
+SQL
+        );
+    }
+
+    public function down(PDO $pdo): void
+    {
+        $pdo->exec('DROP TABLE IF EXISTS user_tokens;');
+    }
+};

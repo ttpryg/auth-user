@@ -3,14 +3,14 @@
 namespace Ttpryg\AuthUser\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Ttpryg\AuthUser\Application\Service\EmailVerificationService;
 use Ttpryg\AuthUser\Contracts\EventDispatcherInterface;
 use Ttpryg\AuthUser\Contracts\TokenRepositoryInterface;
 use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
-use Ttpryg\AuthUser\Entities\User;
-use Ttpryg\AuthUser\Events\UserEmailVerifiedEvent;
-use Ttpryg\AuthUser\Exceptions\TokenInvalidException;
-use Ttpryg\AuthUser\Exceptions\UserNotFoundException;
-use Ttpryg\AuthUser\Services\EmailVerificationService;
+use Ttpryg\AuthUser\Domain\Entity\User;
+use Ttpryg\AuthUser\Domain\Event\UserEmailVerifiedEvent;
+use Ttpryg\AuthUser\Domain\Exception\TokenInvalidException;
+use Ttpryg\AuthUser\Domain\Exception\UserNotFoundException;
 
 class EmailVerificationServiceTest extends TestCase
 {

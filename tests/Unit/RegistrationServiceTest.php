@@ -3,13 +3,13 @@
 namespace Ttpryg\AuthUser\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Ttpryg\AuthUser\Application\Service\RegistrationService;
 use Ttpryg\AuthUser\Contracts\EventDispatcherInterface;
 use Ttpryg\AuthUser\Contracts\PasswordHasherInterface;
 use Ttpryg\AuthUser\Contracts\UserRepositoryInterface;
-use Ttpryg\AuthUser\Entities\User;
-use Ttpryg\AuthUser\Events\UserRegisteredEvent;
-use Ttpryg\AuthUser\Exceptions\UserAlreadyExistsException;
-use Ttpryg\AuthUser\Services\RegistrationService;
+use Ttpryg\AuthUser\Domain\Entity\User;
+use Ttpryg\AuthUser\Domain\Event\UserRegisteredEvent;
+use Ttpryg\AuthUser\Domain\Exception\UserAlreadyExistsException;
 
 class RegistrationServiceTest extends TestCase
 {
@@ -30,7 +30,7 @@ class RegistrationServiceTest extends TestCase
 
         $repo->expects($this->once())
             ->method('save')
-            ->willReturnCallback(function (User $user): \Ttpryg\AuthUser\Entities\User {
+            ->willReturnCallback(function (User $user): \Ttpryg\AuthUser\Domain\Entity\User {
                 $user->setId(10);
 
                 return $user;

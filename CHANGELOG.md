@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Replaced `src/Database/DatabaseMigrator.php` with `ttpryg/database-migrator` for versioned, rollback-safe migrations.
 - Changed default of `AuthConfig::$preventUserEnumeration` to `true` (secure by default; `PasswordResetService::requestResetToken` returns `null` instead of throwing `UserNotFoundException` for unknown emails).
+- Reorganized the source tree into `Domain`, `Application`, and `Contracts` layers, and moved PDO repositories and the native password hasher into `infrastructure/`. All affected namespaces changed (breaking change): entities and events now live under `Ttpryg\AuthUser\Domain`, application services under `Ttpryg\AuthUser\Application\Service`, configuration under `Ttpryg\AuthUser\Application\Config`, and adapters under `Ttpryg\AuthUser\Infrastructure`.
 
 ### Removed
 

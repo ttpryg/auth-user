@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Ttpryg\AuthUser\Contracts;
 
-use Ttpryg\AuthUser\Entities\Permission;
-use Ttpryg\AuthUser\Entities\Role;
+use Ttpryg\AuthUser\Domain\Entity\Permission;
+use Ttpryg\AuthUser\Domain\Entity\Role;
 
 interface RbacRepositoryInterface
 {
