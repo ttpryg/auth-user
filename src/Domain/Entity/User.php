@@ -10,8 +10,6 @@ use Ttpryg\AuthUser\Contracts\AuthenticatableInterface;
 
 class User implements AuthenticatableInterface
 {
-    // Array of Permission objects or permission names
-
     private readonly ?DateTimeInterface $createdAt;
 
     private ?DateTimeInterface $updatedAt;

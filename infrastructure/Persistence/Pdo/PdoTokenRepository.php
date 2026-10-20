@@ -33,6 +33,11 @@ class PdoTokenRepository implements TokenRepositoryInterface
         return $token;
     }
 
+    /**
+     * Verify a token and return its row data, or null if invalid or expired.
+     *
+     * @return array{user_id: int|string, token: string, type: string, expires_at: string}|null
+     */
     public function verifyToken(string $token, string $type): ?object
     {
         $hashedToken = hash('sha256', $token);
