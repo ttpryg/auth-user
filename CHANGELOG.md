@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Replaced `src/Database/DatabaseMigrator.php` with `ttpryg/database-migrator` for versioned, rollback-safe migrations.
+- Changed default of `AuthConfig::$preventUserEnumeration` to `true` (secure by default; `PasswordResetService::requestResetToken` returns `null` instead of throwing `UserNotFoundException` for unknown emails).
 
 ### Removed
 

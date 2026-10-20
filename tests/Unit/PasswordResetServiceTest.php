@@ -44,7 +44,7 @@ class PasswordResetServiceTest extends TestCase
         $this->assertEquals('generated_token_string', $token);
     }
 
-    // NEGATIVE CASE: Request Token for Non-Existent Email
+    // NEGATIVE CASE: Request Token for Non-Existent Email (enumeration allowed)
     public function test_request_reset_token_fails_on_unknown_email(): void
     {
         $userRepo = $this->createMock(UserRepositoryInterface::class);
@@ -53,10 +53,27 @@ class PasswordResetServiceTest extends TestCase
 
         $userRepo->method('findByEmail')->with('unknown@example.com')->willReturn(value: null);
 
-        $this->expectException(UserNotFoundException::class);
+        $authConfig = new \\Ttpryg\\AuthUser\\Config\\AuthConfig(preventUserEnumeration: false);
+        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher, authConfig: $authConfig);
 
-        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher);
+        $this->expectException(UserNotFoundException::class);
         $passwordResetService->requestResetToken('unknown@example.com');
+    }
+
+    // NEGATIVE CASE: Request Token for Non-Existent Email (default: enumeration prevented)
+    public function test_request_reset_token_returns_null_by_default_on_unknown_email(): void
+    {
+        $userRepo = $this->createMock(UserRepositoryInterface::class);
+        $tokenRepo = $this->createMock(TokenRepositoryInterface::class);
+        $hasher = $this->createMock(PasswordHasherInterface::class);
+
+        $userRepo->method('findByEmail')->with('unknown@example.com')->willReturn(value: null);
+
+        // Default AuthConfig has preventUserEnumeration = true
+        $passwordResetService = new PasswordResetService($userRepo, $tokenRepo, $hasher);
+
+        $result = $passwordResetService->requestResetToken('unknown@example.com');
+        $this->assertNull($result);
     }
 
     // POSITIVE CASE: Reset Password
